@@ -1,0 +1,115 @@
+.builderGrid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.formColumn {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #1f2937;
+}
+
+.previewColumn {
+  background: #0b0b0b;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #111827;
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 0;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #4b5563;
+}
+
+.inlineInputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.chipButton {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #374151;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.chipButton:hover {
+  background: #111827;
+}
+
+.previewPlaceholder {
+  border-radius: 12px;
+  border: 1px dashed #4b5563;
+  padding: 1rem 1.25rem;
+  background: #050505;
+}
+
+.previewHeading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.previewBlock {
+  border-top: 1px solid #1f2937;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.subtle {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .builderGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
