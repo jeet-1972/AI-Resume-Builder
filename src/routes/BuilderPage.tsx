@@ -1,9 +1,26 @@
 import { ResumeShellLayout } from '../components/ResumeShellLayout';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
+import { computeAtsScore, getAtsSuggestions } from '../utils/atsScore';
 import styles from './BuilderPage.module.css';
 
 export function BuilderPage() {
   const { state, setState, loadSample } = useResumeBuilder();
+  const atsScore = computeAtsScore(state);
+  const suggestions = getAtsSuggestions(state, 3);
+  const hasContact =
+    state.personal.name ||
+    state.personal.email ||
+    state.personal.phone ||
+    state.personal.location;
+  const hasSummary = state.summary.trim().length > 0;
+  const hasEducation = state.education.some(
+    (e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim()
+  );
+  const hasExperience = state.experience.length > 0;
+  const hasProjects = state.projects.some((p) => p.name.trim() || p.description.trim());
+  const skillsList = state.skills.split(',').map((s) => s.trim()).filter(Boolean);
+  const hasSkills = skillsList.length > 0;
+  const hasLinks = !!(state.links.github?.trim() || state.links.linkedin?.trim());
 
   const updatePersonal = (field: keyof typeof state.personal, value: string) => {
     setState((prev) => ({
@@ -275,6 +292,23 @@ export function BuilderPage() {
                   />
                 </div>
               </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <label className={styles.label}>Description / bullets</label>
+                <textarea
+                  className={styles.textarea}
+                  rows={2}
+                  value={exp.description ?? ''}
+                  onChange={(e) =>
+                    setState((prev) => ({
+                      ...prev,
+                      experience: prev.experience.map((entry) =>
+                        entry.id === exp.id ? { ...entry, description: e.target.value } : entry,
+                      ),
+                    }))
+                  }
+                  placeholder="e.g. Shipped 3 features; reduced load time by 40%"
+                />
+              </div>
             </div>
           ))}
           <button type="button" className={styles.chipButton} onClick={addExperience}>
@@ -348,68 +382,129 @@ export function BuilderPage() {
         </section>
 
         <aside className={styles.previewColumn}>
-          <div className={styles.previewPlaceholder}>
+          <div className={styles.previewCard}>
             <div className={styles.previewHeading}>Live Preview</div>
-            <p className={styles.subtle}>
-              This is a structured resume layout placeholder. Content will reflect your entries,
-              but export and scoring are not implemented yet.
-            </p>
-            <div className={styles.previewBlock}>
-              <strong>{state.personal.name || 'Your Name'}</strong>
-              <div className={styles.subtle}>
-                {[state.personal.email, state.personal.phone, state.personal.location]
-                  .filter(Boolean)
-                  .join(' • ') || 'Email • Phone • Location'}
-              </div>
+            {hasContact && (
+              <>
+                <div className={styles.previewName}>
+                  {state.personal.name || 'Your Name'}
+                </div>
+                <div className={styles.previewMeta}>
+                  {[state.personal.email, state.personal.phone, state.personal.location]
+                    .filter(Boolean)
+                    .join(' • ')}
+                </div>
+              </>
+            )}
+            {hasSummary && (
+              <>
+                <div className={styles.previewSectionTitle}>Summary</div>
+                <p className={styles.previewBody}>{state.summary}</p>
+              </>
+            )}
+            {hasEducation && (
+              <>
+                <div className={styles.previewSectionTitle}>Education</div>
+                {state.education
+                  .filter((e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim())
+                  .map((edu) => (
+                    <div key={edu.id} className={styles.previewBlock}>
+                      <div className={styles.previewItemTitle}>{edu.school || 'School'}</div>
+                      <div className={styles.previewItemMeta}>
+                        {edu.degree} {[edu.start, edu.end].filter(Boolean).join(' – ')}
+                      </div>
+                    </div>
+                  ))}
+              </>
+            )}
+            {hasExperience && (
+              <>
+                <div className={styles.previewSectionTitle}>Experience</div>
+                {state.experience.map((exp) => (
+                  <div key={exp.id} className={styles.previewBlock}>
+                    <div className={styles.previewItemTitle}>{exp.role || 'Role'}</div>
+                    <div className={styles.previewItemMeta}>
+                      {exp.company} • {[exp.start, exp.end].filter(Boolean).join(' – ')}
+                    </div>
+                    {exp.description?.trim() && (
+                      <p className={styles.previewBody}>{exp.description}</p>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+            {hasProjects && (
+              <>
+                <div className={styles.previewSectionTitle}>Projects</div>
+                {state.projects
+                  .filter((p) => p.name.trim() || p.description.trim())
+                  .map((proj) => (
+                    <div key={proj.id} className={styles.previewBlock}>
+                      <div className={styles.previewItemTitle}>{proj.name || 'Project'}</div>
+                      {proj.description?.trim() && (
+                        <p className={styles.previewBody}>{proj.description}</p>
+                      )}
+                    </div>
+                  ))}
+              </>
+            )}
+            {hasSkills && (
+              <>
+                <div className={styles.previewSectionTitle}>Skills</div>
+                <div className={styles.previewPills}>
+                  {skillsList.map((s) => (
+                    <span key={s} className={styles.previewPill}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {hasLinks && (
+              <>
+                <div className={styles.previewSectionTitle}>Links</div>
+                <div className={styles.previewBody}>
+                  {state.links.github?.trim() && (
+                    <a href={state.links.github} target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>
+                      GitHub
+                    </a>
+                  )}
+                  {state.links.github?.trim() && state.links.linkedin?.trim() && ' · '}
+                  {state.links.linkedin?.trim() && (
+                    <a href={state.links.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+              </>
+            )}
+            {!hasContact && !hasSummary && !hasEducation && !hasExperience && !hasProjects && !hasSkills && !hasLinks && (
+              <p className={styles.subtle}>Fill the form to see your resume here.</p>
+            )}
+          </div>
+
+          <div className={styles.atsCard}>
+            <div className={styles.atsLabel}>ATS Readiness Score</div>
+            <div className={styles.atsMeterWrap}>
+              <div
+                className={styles.atsMeterFill}
+                style={{ width: `${atsScore}%` }}
+                role="progressbar"
+                aria-valuenow={atsScore}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
             </div>
-            <div className={styles.previewBlock}>
-              <strong>Summary</strong>
-              <p className={styles.subtle}>
-                {state.summary || 'A concise, 2–3 line overview of your skills and focus.'}
-              </p>
-            </div>
-            <div className={styles.previewBlock}>
-              <strong>Education</strong>
-              {state.education.length === 0 ? (
-                <p className={styles.subtle}>Add your degrees and schools.</p>
-              ) : (
-                state.education.map((edu) => (
-                  <p key={edu.id} className={styles.subtle}>
-                    <strong>{edu.school}</strong> — {edu.degree} ({edu.start}–{edu.end})
-                  </p>
-                ))
-              )}
-            </div>
-            <div className={styles.previewBlock}>
-              <strong>Experience</strong>
-              {state.experience.length === 0 ? (
-                <p className={styles.subtle}>Add roles that show relevant impact.</p>
-              ) : (
-                state.experience.map((exp) => (
-                  <p key={exp.id} className={styles.subtle}>
-                    <strong>{exp.role}</strong> — {exp.company} ({exp.start}–{exp.end})
-                  </p>
-                ))
-              )}
-            </div>
-            <div className={styles.previewBlock}>
-              <strong>Projects</strong>
-              {state.projects.length === 0 ? (
-                <p className={styles.subtle}>Highlight side projects or key work.</p>
-              ) : (
-                state.projects.map((proj) => (
-                  <p key={proj.id} className={styles.subtle}>
-                    <strong>{proj.name}</strong> — {proj.description}
-                  </p>
-                ))
-              )}
-            </div>
-            <div className={styles.previewBlock}>
-              <strong>Skills</strong>
-              <p className={styles.subtle}>
-                {state.skills || 'List your core skills, separated by commas.'}
-              </p>
-            </div>
+            <div className={styles.atsScoreValue}>{atsScore}/100</div>
+            {suggestions.length > 0 && (
+              <ul className={styles.atsSuggestions}>
+                {suggestions.map((msg, i) => (
+                  <li key={i} className={styles.atsSuggestion}>
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
       </div>

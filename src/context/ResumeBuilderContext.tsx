@@ -1,5 +1,78 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+
+const STORAGE_KEY = 'resumeBuilderData';
+
+function loadFromStorage(): ResumeState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object') return null;
+    const p = parsed as Record<string, unknown>;
+    const personal = (p.personal && typeof p.personal === 'object') ? (p.personal as Record<string, unknown>) : {};
+    const linksObj = (p.links && typeof p.links === 'object') ? (p.links as Record<string, unknown>) : {};
+    return {
+      personal: {
+        name: typeof personal.name === 'string' ? personal.name : '',
+        email: typeof personal.email === 'string' ? personal.email : '',
+        phone: typeof personal.phone === 'string' ? personal.phone : '',
+        location: typeof personal.location === 'string' ? personal.location : '',
+      },
+      summary: typeof p.summary === 'string' ? p.summary : '',
+      education: Array.isArray(p.education)
+        ? p.education.map((e: unknown, i: number) => {
+            const x = e && typeof e === 'object' ? (e as Record<string, unknown>) : {};
+            return {
+              id: typeof x.id === 'number' ? x.id : i + 1,
+              school: typeof x.school === 'string' ? x.school : '',
+              degree: typeof x.degree === 'string' ? x.degree : '',
+              start: typeof x.start === 'string' ? x.start : '',
+              end: typeof x.end === 'string' ? x.end : '',
+            };
+          })
+        : [],
+      experience: Array.isArray(p.experience)
+        ? p.experience.map((e: unknown, i: number) => {
+            const x = e && typeof e === 'object' ? (e as Record<string, unknown>) : {};
+            return {
+              id: typeof x.id === 'number' ? x.id : i + 1,
+              company: typeof x.company === 'string' ? x.company : '',
+              role: typeof x.role === 'string' ? x.role : '',
+              start: typeof x.start === 'string' ? x.start : '',
+              end: typeof x.end === 'string' ? x.end : '',
+              description: typeof x.description === 'string' ? x.description : undefined,
+            };
+          })
+        : [],
+      projects: Array.isArray(p.projects)
+        ? p.projects.map((e: unknown, i: number) => {
+            const x = e && typeof e === 'object' ? (e as Record<string, unknown>) : {};
+            return {
+              id: typeof x.id === 'number' ? x.id : i + 1,
+              name: typeof x.name === 'string' ? x.name : '',
+              description: typeof x.description === 'string' ? x.description : '',
+            };
+          })
+        : [],
+      skills: typeof p.skills === 'string' ? p.skills : '',
+      links: {
+        github: typeof linksObj.github === 'string' ? linksObj.github : '',
+        linkedin: typeof linksObj.linkedin === 'string' ? linksObj.linkedin : '',
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(state: ResumeState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
 
 type EducationEntry = {
   id: number;
@@ -15,6 +88,7 @@ type ExperienceEntry = {
   role: string;
   start: string;
   end: string;
+  description?: string;
 };
 
 type ProjectEntry = {
@@ -71,8 +145,17 @@ const emptyState: ResumeState = {
 
 const ResumeBuilderContext = createContext<ResumeContextValue | null>(null);
 
+function getInitialState(): ResumeState {
+  const stored = loadFromStorage();
+  return stored ?? emptyState;
+}
+
 export function ResumeBuilderProvider({ children }: { children: ReactNode }) {
-  const [state, setStateInternal] = useState<ResumeState>(emptyState);
+  const [state, setStateInternal] = useState<ResumeState>(getInitialState);
+
+  useEffect(() => {
+    saveToStorage(state);
+  }, [state]);
 
   const setState = (updater: (prev: ResumeState) => ResumeState) => {
     setStateInternal((prev) => updater(prev));
@@ -104,6 +187,7 @@ export function ResumeBuilderProvider({ children }: { children: ReactNode }) {
           role: 'Frontend Engineer',
           start: '2023',
           end: 'Present',
+          description: 'Shipped 3 major features; reduced bundle size by 20%.',
         },
       ],
       projects: [

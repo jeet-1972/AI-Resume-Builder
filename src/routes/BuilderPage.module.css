@@ -107,6 +107,108 @@
   font-size: 0.8rem;
 }
 
+/* Live preview content */
+.previewCard {
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  padding: 1rem 1.25rem;
+  background: #0a0a0f;
+}
+.previewSectionTitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 1rem 0 0.4rem;
+}
+.previewSectionTitle:first-child {
+  margin-top: 0;
+}
+.previewName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+.previewMeta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+.previewBody {
+  font-size: 0.8rem;
+  color: #d1d5db;
+  line-height: 1.45;
+}
+.previewItemTitle {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+.previewItemMeta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.previewPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+.previewPill {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+/* ATS score */
+.atsCard {
+  margin-top: 1rem;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  padding: 1rem 1.25rem;
+  background: #0a0a0f;
+}
+.atsLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+.atsMeterWrap {
+  height: 8px;
+  border-radius: 999px;
+  background: #1f2937;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+.atsMeterFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #6b7280 100%);
+  transition: width 0.25s ease;
+}
+.atsScoreValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+.atsSuggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.atsSuggestion {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #1f2937;
+}
+.atsSuggestion:last-child {
+  border-bottom: none;
+}
+
 @media (max-width: 900px) {
   .builderGrid {
     grid-template-columns: minmax(0, 1fr);
