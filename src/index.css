@@ -22,3 +22,14 @@ button {
   font-family: inherit;
   cursor: pointer;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body,
+  #root {
+    background: #fff !important;
+    color: #111 !important;
+  }
+}

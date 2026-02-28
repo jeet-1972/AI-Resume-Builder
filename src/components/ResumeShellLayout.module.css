@@ -91,3 +91,15 @@
   }
 }
 
+@media print {
+  .root,
+  .main {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
+

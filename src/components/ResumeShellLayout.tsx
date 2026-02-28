@@ -11,7 +11,7 @@ interface ResumeShellLayoutProps {
 export function ResumeShellLayout({ title, subtitle, children }: ResumeShellLayoutProps) {
   return (
     <div className={styles.root}>
-      <header className={styles.topBar}>
+      <header className={`${styles.topBar} no-print`}>
         <div className={styles.brand}>
           <span className={styles.brandTitle}>AI Resume Builder</span>
           <span className={styles.brandSubtitle}>KodNest Premium</span>
@@ -45,7 +45,7 @@ export function ResumeShellLayout({ title, subtitle, children }: ResumeShellLayo
       </header>
 
       <main className={styles.main}>
-        <div className={styles.pageHeader}>
+        <div className={`${styles.pageHeader} no-print`}>
           <h1 className={styles.pageTitle}>{title}</h1>
           {subtitle ? <p className={styles.pageSubtitle}>{subtitle}</p> : null}
         </div>

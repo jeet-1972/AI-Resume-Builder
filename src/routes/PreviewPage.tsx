@@ -1,12 +1,33 @@
+import { useState } from 'react';
 import { ResumeShellLayout } from '../components/ResumeShellLayout';
 import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
 import { useTemplate } from '../context/TemplateContext';
+import { isResumeIncomplete, resumeToPlainText } from '../utils/resumeToPlainText';
 import styles from './PreviewPage.module.css';
 
 export function PreviewPage() {
   const { state } = useResumeBuilder();
   const { template } = useTemplate();
+  const [showIncompleteWarning, setShowIncompleteWarning] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  const handlePrint = () => {
+    setShowIncompleteWarning(isResumeIncomplete(state));
+    window.print();
+  };
+
+  const handleCopyText = async () => {
+    setShowIncompleteWarning(isResumeIncomplete(state));
+    const text = resumeToPlainText(state);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    } catch {
+      setCopyFeedback(false);
+    }
+  };
   const skillsList = state.skills
     .split(',')
     .map((s) => s.trim())
@@ -30,8 +51,25 @@ export function PreviewPage() {
       title="Preview"
       subtitle="Clean, minimal, print-friendly view of your resume."
     >
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="no-print" style={{ marginBottom: '1rem' }}>
         <TemplateTabs />
+      </div>
+      <div className={`no-print ${styles.exportBar}`}>
+        <button type="button" className={styles.exportBtn} onClick={handlePrint}>
+          Print / Save as PDF
+        </button>
+        <button
+          type="button"
+          className={`${styles.exportBtn} ${styles.exportBtnSecondary}`}
+          onClick={handleCopyText}
+        >
+          {copyFeedback ? 'Copied!' : 'Copy Resume as Text'}
+        </button>
+        {showIncompleteWarning && (
+          <p className={styles.incompleteWarning}>
+            Your resume may look incomplete.
+          </p>
+        )}
       </div>
       <div className={styles.previewOuter}>
         <div className={styles.page} data-template={template}>
@@ -57,7 +95,7 @@ export function PreviewPage() {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Experience</h2>
               {state.experience.map((exp) => (
-                <div key={exp.id} className={styles.body}>
+                <div key={exp.id} className={styles.sectionItem}>
                   <div className={styles.itemTitle}>{exp.role || 'Role'}</div>
                   <div className={styles.itemMeta}>
                     {exp.company || 'Company'} • {[exp.start, exp.end].filter(Boolean).join(' – ')}
@@ -74,7 +112,7 @@ export function PreviewPage() {
               {state.education
                 .filter((e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim())
                 .map((edu) => (
-                  <div key={edu.id} className={styles.body}>
+                  <div key={edu.id} className={styles.sectionItem}>
                     <div className={styles.itemTitle}>{edu.school || 'School'}</div>
                     <div className={styles.itemMeta}>
                       {edu.degree || 'Degree'} • {[edu.start, edu.end].filter(Boolean).join(' – ')}
@@ -90,9 +128,9 @@ export function PreviewPage() {
               {state.projects
                 .filter((p) => p.name.trim() || p.description.trim())
                 .map((proj) => (
-                  <div key={proj.id} className={styles.body}>
+                  <div key={proj.id} className={styles.sectionItem}>
                     <div className={styles.itemTitle}>{proj.name || 'Project'}</div>
-                    {proj.description?.trim() && <p>{proj.description}</p>}
+                    {proj.description?.trim() && <p className={styles.body}>{proj.description}</p>}
                   </div>
                 ))}
             </section>
