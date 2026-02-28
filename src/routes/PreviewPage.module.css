@@ -75,3 +75,29 @@
   font-size: 0.75rem;
 }
 
+/* Template variants: layout styling only (black/white) */
+.page[data-template="classic"] .name {
+  font-family: Georgia, serif;
+  font-size: 1.6rem;
+}
+.page[data-template="classic"] .sectionTitle {
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+}
+.page[data-template="modern"] .name {
+  font-size: 1.5rem;
+}
+.page[data-template="minimal"] .name {
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+.page[data-template="minimal"] .sectionTitle {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+}
+.page[data-template="minimal"] .body {
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+

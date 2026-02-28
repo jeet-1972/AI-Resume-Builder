@@ -93,3 +93,30 @@ export function getAtsSuggestions(state: ResumeState, maxCount = 3): string[] {
   if (!hasCompleteEducation(state)) out.push(SUGGESTION_MESSAGES.education);
   return out.slice(0, maxCount);
 }
+
+/** Top 3 Improvements: priority order per spec. Used for Improvement Panel. */
+const TOP_IMPROVEMENTS: Array<{ check: (s: ResumeState) => boolean; message: string }> = [
+  { check: (s) => s.projects.length < MIN_PROJECTS, message: 'Add at least 2 projects.' },
+  { check: (s) => !hasMeasurableImpact(s), message: 'Add measurable impact (numbers) in bullets.' },
+  {
+    check: (s) => wordCount(s.summary) < SUMMARY_MIN_WORDS,
+    message: 'Expand your summary (target 40+ words).',
+  },
+  {
+    check: (s) => s.skills.split(',').map((x) => x.trim()).filter(Boolean).length < MIN_SKILLS,
+    message: 'Add more skills (target 8+).',
+  },
+  {
+    check: (s) => s.experience.length < 1,
+    message: 'Add experience or internship/project work.',
+  },
+];
+
+export function getTop3Improvements(state: ResumeState): string[] {
+  const out: string[] = [];
+  for (const { check, message } of TOP_IMPROVEMENTS) {
+    if (check(state)) out.push(message);
+    if (out.length >= 3) break;
+  }
+  return out;
+}

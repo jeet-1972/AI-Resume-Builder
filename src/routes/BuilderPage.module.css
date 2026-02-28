@@ -209,6 +209,68 @@
   border-bottom: none;
 }
 
+/* Bullet guidance */
+.bulletHint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Top 3 Improvements */
+.improvementsCard {
+  margin-top: 1rem;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  padding: 1rem 1.25rem;
+  background: #0a0a0f;
+}
+.improvementsLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+.improvementsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.improvementItem {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #1f2937;
+}
+.improvementItem:last-child {
+  border-bottom: none;
+}
+
+/* Template variants: layout styling only */
+.previewCard[data-template="classic"] .previewName {
+  font-family: Georgia, serif;
+  font-size: 1.05rem;
+}
+.previewCard[data-template="classic"] .previewSectionTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+.previewCard[data-template="modern"] .previewName {
+  font-size: 1rem;
+}
+.previewCard[data-template="minimal"] .previewName {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.previewCard[data-template="minimal"] .previewSectionTitle {
+  margin-top: 1.25rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+}
+.previewCard[data-template="minimal"] .previewBody {
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 900px) {
   .builderGrid {
     grid-template-columns: minmax(0, 1fr);

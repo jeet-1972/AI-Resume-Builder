@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { RBProvider } from './context/RBContext';
 import { ResumeBuilderProvider } from './context/ResumeBuilderContext';
+import { TemplateProvider } from './context/TemplateContext';
 import { StepPage } from './routes/StepPage';
 import { ProofPage as RBProofPage } from './routes/ProofPage';
 import { HomePage } from './routes/HomePage';
@@ -13,7 +14,8 @@ function App() {
   return (
     <RBProvider>
       <ResumeBuilderProvider>
-        <BrowserRouter>
+        <TemplateProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/builder" element={<BuilderPage />} />
@@ -25,6 +27,7 @@ function App() {
             <Route path="/rb/:step" element={<StepPage />} />
           </Routes>
         </BrowserRouter>
+        </TemplateProvider>
       </ResumeBuilderProvider>
     </RBProvider>
   );

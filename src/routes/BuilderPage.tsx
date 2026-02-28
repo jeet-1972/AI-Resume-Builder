@@ -1,12 +1,17 @@
 import { ResumeShellLayout } from '../components/ResumeShellLayout';
+import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
-import { computeAtsScore, getAtsSuggestions } from '../utils/atsScore';
+import { useTemplate } from '../context/TemplateContext';
+import { computeAtsScore, getAtsSuggestions, getTop3Improvements } from '../utils/atsScore';
+import { needsActionVerb, needsMeasurableImpact } from '../utils/bulletGuidance';
 import styles from './BuilderPage.module.css';
 
 export function BuilderPage() {
   const { state, setState, loadSample } = useResumeBuilder();
+  const { template } = useTemplate();
   const atsScore = computeAtsScore(state);
   const suggestions = getAtsSuggestions(state, 3);
+  const top3Improvements = getTop3Improvements(state);
   const hasContact =
     state.personal.name ||
     state.personal.email ||
@@ -95,7 +100,8 @@ export function BuilderPage() {
       title="Resume Builder"
       subtitle="Fill in your details on the left. Preview updates on the right."
     >
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <TemplateTabs />
         <button type="button" className={styles.chipButton} onClick={loadSample}>
           Load Sample Data
         </button>
@@ -308,6 +314,16 @@ export function BuilderPage() {
                   }
                   placeholder="e.g. Shipped 3 features; reduced load time by 40%"
                 />
+                {(exp.description ?? '').trim() && (
+                  <div className={styles.bulletHint}>
+                    {needsActionVerb(exp.description ?? '') && (
+                      <div>Start with a strong action verb.</div>
+                    )}
+                    {needsMeasurableImpact(exp.description ?? '') && (
+                      <div>Add measurable impact (numbers).</div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -344,6 +360,16 @@ export function BuilderPage() {
                   }))
                 }
               />
+              {proj.description.trim() && (
+                <div className={styles.bulletHint}>
+                  {needsActionVerb(proj.description) && (
+                    <div>Start with a strong action verb.</div>
+                  )}
+                  {needsMeasurableImpact(proj.description) && (
+                    <div>Add measurable impact (numbers).</div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           <button type="button" className={styles.chipButton} onClick={addProject}>
@@ -382,7 +408,7 @@ export function BuilderPage() {
         </section>
 
         <aside className={styles.previewColumn}>
-          <div className={styles.previewCard}>
+          <div className={styles.previewCard} data-template={template}>
             <div className={styles.previewHeading}>Live Preview</div>
             {hasContact && (
               <>
@@ -504,6 +530,21 @@ export function BuilderPage() {
                   </li>
                 ))}
               </ul>
+            )}
+          </div>
+
+          <div className={styles.improvementsCard}>
+            <div className={styles.improvementsLabel}>Top 3 Improvements</div>
+            {top3Improvements.length > 0 ? (
+              <ul className={styles.improvementsList}>
+                {top3Improvements.map((msg, i) => (
+                  <li key={i} className={styles.improvementItem}>
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.subtle}>No improvements needed at this time.</p>
             )}
           </div>
         </aside>
