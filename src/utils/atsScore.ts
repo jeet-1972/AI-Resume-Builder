@@ -34,7 +34,10 @@ function hasMeasurableImpact(state: ResumeState): boolean {
       (e.description && hasNumberInText(e.description))
   );
   const projHasNumber = state.projects.some(
-    (p) => hasNumberInText(p.name) || hasNumberInText(p.description)
+    (p) =>
+      hasNumberInText(p.name) ||
+      hasNumberInText(p.description) ||
+      (p.techStack && p.techStack.some((t) => hasNumberInText(t)))
   );
   return expHasNumber || projHasNumber;
 }
@@ -45,7 +48,11 @@ export function computeAtsScore(state: ResumeState): number {
   if (summaryWords >= SUMMARY_MIN_WORDS && summaryWords <= SUMMARY_MAX_WORDS) score += 15;
   if (state.projects.length >= MIN_PROJECTS) score += 10;
   if (state.experience.length >= 1) score += 10;
-  const skillsList = state.skills.split(',').map((s) => s.trim()).filter(Boolean);
+  const skillsList = [
+    ...(state.skills.technical || []),
+    ...(state.skills.soft || []),
+    ...(state.skills.tools || []),
+  ].filter(Boolean);
   if (skillsList.length >= MIN_SKILLS) score += 10;
   const hasLink =
     (state.links.github && state.links.github.trim() !== '') ||
@@ -83,7 +90,11 @@ export function getAtsSuggestions(state: ResumeState, maxCount = 3): string[] {
     out.push(SUGGESTION_MESSAGES.summary);
   if (state.projects.length < MIN_PROJECTS) out.push(SUGGESTION_MESSAGES.projects);
   if (state.experience.length < 1) out.push(SUGGESTION_MESSAGES.experience);
-  const skillsList = state.skills.split(',').map((s) => s.trim()).filter(Boolean);
+  const skillsList = [
+    ...(state.skills.technical || []),
+    ...(state.skills.soft || []),
+    ...(state.skills.tools || []),
+  ].filter(Boolean);
   if (skillsList.length < MIN_SKILLS) out.push(SUGGESTION_MESSAGES.skills);
   const hasLink =
     (state.links.github && state.links.github.trim() !== '') ||
@@ -103,7 +114,12 @@ const TOP_IMPROVEMENTS: Array<{ check: (s: ResumeState) => boolean; message: str
     message: 'Expand your summary (target 40+ words).',
   },
   {
-    check: (s) => s.skills.split(',').map((x) => x.trim()).filter(Boolean).length < MIN_SKILLS,
+    check: (s) =>
+      [
+        ...(s.skills.technical || []),
+        ...(s.skills.soft || []),
+        ...(s.skills.tools || []),
+      ].filter(Boolean).length < MIN_SKILLS,
     message: 'Add more skills (target 8+).',
   },
   {

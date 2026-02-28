@@ -49,15 +49,25 @@ export function resumeToPlainText(state: ResumeState): string {
       if (p.name || p.description) {
         lines.push(p.name || 'Project');
         if (p.description?.trim()) lines.push(p.description.trim());
+        if (p.techStack?.length) lines.push(`Tech: ${p.techStack.join(', ')}`);
+        if (p.liveUrl?.trim()) lines.push(`Live: ${p.liveUrl.trim()}`);
+        if (p.githubUrl?.trim()) lines.push(`GitHub: ${p.githubUrl.trim()}`);
       }
     });
     lines.push('');
   }
 
-  const skills = state.skills.split(',').map((s) => s.trim()).filter(Boolean);
-  if (skills.length > 0) {
+  const allSkills = [
+    ...(state.skills.technical || []),
+    ...(state.skills.soft || []),
+    ...(state.skills.tools || []),
+  ].filter(Boolean);
+  if (allSkills.length > 0) {
     lines.push('Skills');
-    lines.push(skills.join(', '));
+    if (state.skills.technical?.length)
+      lines.push(`Technical: ${state.skills.technical.join(', ')}`);
+    if (state.skills.soft?.length) lines.push(`Soft: ${state.skills.soft.join(', ')}`);
+    if (state.skills.tools?.length) lines.push(`Tools: ${state.skills.tools.join(', ')}`);
     lines.push('');
   }
 

@@ -28,10 +28,11 @@ export function PreviewPage() {
       setCopyFeedback(false);
     }
   };
-  const skillsList = state.skills
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const skillsList = [
+    ...(state.skills.technical || []),
+    ...(state.skills.soft || []),
+    ...(state.skills.tools || []),
+  ].filter(Boolean);
   const hasContact =
     state.personal.name ||
     state.personal.email ||
@@ -42,7 +43,14 @@ export function PreviewPage() {
     (e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim()
   );
   const hasExperience = state.experience.length > 0;
-  const hasProjects = state.projects.some((p) => p.name.trim() || p.description.trim());
+  const hasProjects = state.projects.some(
+    (p) =>
+      p.name.trim() ||
+      p.description.trim() ||
+      (p.techStack && p.techStack.length > 0) ||
+      p.liveUrl?.trim() ||
+      p.githubUrl?.trim()
+  );
   const hasSkills = skillsList.length > 0;
   const hasLinks = !!(state.links.github?.trim() || state.links.linkedin?.trim());
 
@@ -126,11 +134,42 @@ export function PreviewPage() {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Projects</h2>
               {state.projects
-                .filter((p) => p.name.trim() || p.description.trim())
+                .filter(
+                  (p) =>
+                    p.name.trim() ||
+                    p.description.trim() ||
+                    (p.techStack && p.techStack.length > 0) ||
+                    p.liveUrl?.trim() ||
+                    p.githubUrl?.trim()
+                )
                 .map((proj) => (
                   <div key={proj.id} className={styles.sectionItem}>
                     <div className={styles.itemTitle}>{proj.name || 'Project'}</div>
                     {proj.description?.trim() && <p className={styles.body}>{proj.description}</p>}
+                    {(proj.techStack || []).length > 0 && (
+                      <div className={styles.pillRow}>
+                        {(proj.techStack || []).map((t) => (
+                          <span key={t} className={styles.pill}>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {(proj.liveUrl?.trim() || proj.githubUrl?.trim()) && (
+                      <p className={styles.body}>
+                        {proj.liveUrl?.trim() && (
+                          <a href={proj.liveUrl} target="_blank" rel="noopener noreferrer">
+                            Live
+                          </a>
+                        )}
+                        {proj.liveUrl?.trim() && proj.githubUrl?.trim() && ' · '}
+                        {proj.githubUrl?.trim() && (
+                          <a href={proj.githubUrl} target="_blank" rel="noopener noreferrer">
+                            GitHub
+                          </a>
+                        )}
+                      </p>
+                    )}
                   </div>
                 ))}
             </section>
@@ -139,13 +178,42 @@ export function PreviewPage() {
           {hasSkills && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Skills</h2>
-              <div className={styles.pillRow}>
-                {skillsList.map((skill) => (
-                  <span key={skill} className={styles.pill}>
-                    {skill}
-                  </span>
-                ))}
-              </div>
+              {state.skills.technical?.length > 0 && (
+                <>
+                  <div className={styles.itemMeta}>Technical Skills</div>
+                  <div className={styles.pillRow}>
+                    {state.skills.technical.map((s) => (
+                      <span key={s} className={styles.pill}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {state.skills.soft?.length > 0 && (
+                <>
+                  <div className={styles.itemMeta}>Soft Skills</div>
+                  <div className={styles.pillRow}>
+                    {state.skills.soft.map((s) => (
+                      <span key={s} className={styles.pill}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {state.skills.tools?.length > 0 && (
+                <>
+                  <div className={styles.itemMeta}>Tools & Technologies</div>
+                  <div className={styles.pillRow}>
+                    {state.skills.tools.map((s) => (
+                      <span key={s} className={styles.pill}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
             </section>
           )}
 

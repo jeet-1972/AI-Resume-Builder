@@ -1,14 +1,31 @@
+import { useState, useCallback } from 'react';
 import { ResumeShellLayout } from '../components/ResumeShellLayout';
 import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
 import { useTemplate } from '../context/TemplateContext';
+import type { SkillsByCategory } from '../context/ResumeBuilderContext';
 import { computeAtsScore, getAtsSuggestions, getTop3Improvements } from '../utils/atsScore';
 import { needsActionVerb, needsMeasurableImpact } from '../utils/bulletGuidance';
 import styles from './BuilderPage.module.css';
 
+const SUGGESTED_SKILLS: SkillsByCategory = {
+  technical: ['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'GraphQL'],
+  soft: ['Team Leadership', 'Problem Solving'],
+  tools: ['Git', 'Docker', 'AWS'],
+};
+
+const SKILL_CATEGORIES: { key: keyof SkillsByCategory; label: string }[] = [
+  { key: 'technical', label: 'Technical Skills' },
+  { key: 'soft', label: 'Soft Skills' },
+  { key: 'tools', label: 'Tools & Technologies' },
+];
+
 export function BuilderPage() {
   const { state, setState, loadSample } = useResumeBuilder();
   const { template } = useTemplate();
+  const [suggestSkillsLoading, setSuggestSkillsLoading] = useState(false);
+  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
+  const [skillInputs, setSkillInputs] = useState<Record<string, string>>({ technical: '', soft: '', tools: '' });
   const atsScore = computeAtsScore(state);
   const suggestions = getAtsSuggestions(state, 3);
   const top3Improvements = getTop3Improvements(state);
@@ -22,8 +39,19 @@ export function BuilderPage() {
     (e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim()
   );
   const hasExperience = state.experience.length > 0;
-  const hasProjects = state.projects.some((p) => p.name.trim() || p.description.trim());
-  const skillsList = state.skills.split(',').map((s) => s.trim()).filter(Boolean);
+  const hasProjects = state.projects.some(
+    (p) =>
+      p.name.trim() ||
+      p.description.trim() ||
+      (p.techStack && p.techStack.length > 0) ||
+      p.liveUrl?.trim() ||
+      p.githubUrl?.trim()
+  );
+  const skillsList = [
+    ...(state.skills.technical || []),
+    ...(state.skills.soft || []),
+    ...(state.skills.tools || []),
+  ];
   const hasSkills = skillsList.length > 0;
   const hasLinks = !!(state.links.github?.trim() || state.links.linkedin?.trim());
 
@@ -38,9 +66,49 @@ export function BuilderPage() {
     setState((prev) => ({ ...prev, summary: value }));
   };
 
-  const updateSkills = (value: string) => {
-    setState((prev) => ({ ...prev, skills: value }));
-  };
+  const addSkill = useCallback(
+    (category: keyof SkillsByCategory, skill: string) => {
+      const trimmed = skill.trim();
+      if (!trimmed) return;
+      setState((prev) => ({
+        ...prev,
+        skills: {
+          ...prev.skills,
+          [category]: [...(prev.skills[category] || []), trimmed],
+        },
+      }));
+      setSkillInputs((prev) => ({ ...prev, [category]: '' }));
+    },
+    [setState]
+  );
+
+  const removeSkill = useCallback(
+    (category: keyof SkillsByCategory, index: number) => {
+      setState((prev) => ({
+        ...prev,
+        skills: {
+          ...prev.skills,
+          [category]: prev.skills[category].filter((_, i) => i !== index),
+        },
+      }));
+    },
+    [setState]
+  );
+
+  const handleSuggestSkills = useCallback(() => {
+    setSuggestSkillsLoading(true);
+    setTimeout(() => {
+      setState((prev) => ({
+        ...prev,
+        skills: {
+          technical: [...(prev.skills.technical || []), ...SUGGESTED_SKILLS.technical],
+          soft: [...(prev.skills.soft || []), ...SUGGESTED_SKILLS.soft],
+          tools: [...(prev.skills.tools || []), ...SUGGESTED_SKILLS.tools],
+        },
+      }));
+      setSuggestSkillsLoading(false);
+    }, 1000);
+  }, [setState]);
 
   const updateLinks = (field: keyof typeof state.links, value: string) => {
     setState((prev) => ({
@@ -82,18 +150,52 @@ export function BuilderPage() {
   };
 
   const addProject = () => {
+    const nextId = state.projects.length
+      ? Math.max(...state.projects.map((p) => p.id)) + 1
+      : 1;
     setState((prev) => ({
       ...prev,
       projects: [
         ...prev.projects,
         {
-          id: prev.projects.length + 1,
+          id: nextId,
           name: '',
           description: '',
+          techStack: [],
+          liveUrl: '',
+          githubUrl: '',
         },
       ],
     }));
+    setExpandedProjectId(nextId);
   };
+
+  const removeProject = (id: number) => {
+    setState((prev) => ({
+      ...prev,
+      projects: prev.projects.filter((p) => p.id !== id),
+    }));
+    if (expandedProjectId === id) setExpandedProjectId(null);
+  };
+
+  const updateProject = useCallback(
+    (
+      id: number,
+      patch: Partial<{
+        name: string;
+        description: string;
+        techStack: string[];
+        liveUrl: string;
+        githubUrl: string;
+      }>
+    ) => {
+      setState((prev) => ({
+        ...prev,
+        projects: prev.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+      }));
+    },
+    [setState]
+  );
 
   return (
     <ResumeShellLayout
@@ -332,57 +434,176 @@ export function BuilderPage() {
           </button>
 
           <h2 className={styles.sectionTitle}>Projects</h2>
-          {state.projects.map((proj) => (
-            <div key={proj.id} className={styles.previewBlock}>
-              <label className={styles.label}>Project name</label>
-              <input
-                className={styles.input}
-                value={proj.name}
-                onChange={(e) =>
-                  setState((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((entry) =>
-                      entry.id === proj.id ? { ...entry, name: e.target.value } : entry,
-                    ),
-                  }))
-                }
-              />
-              <label className={styles.label}>Short description</label>
-              <textarea
-                className={styles.textarea}
-                value={proj.description}
-                onChange={(e) =>
-                  setState((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((entry) =>
-                      entry.id === proj.id ? { ...entry, description: e.target.value } : entry,
-                    ),
-                  }))
-                }
-              />
-              {proj.description.trim() && (
-                <div className={styles.bulletHint}>
-                  {needsActionVerb(proj.description) && (
-                    <div>Start with a strong action verb.</div>
-                  )}
-                  {needsMeasurableImpact(proj.description) && (
-                    <div>Add measurable impact (numbers).</div>
+          <div className={styles.projectAccordion}>
+            {state.projects.map((proj) => {
+              const isExpanded = expandedProjectId === proj.id;
+              const titleDisplay = proj.name.trim() || 'Untitled Project';
+              return (
+                <div key={proj.id} className={styles.projectEntry}>
+                  <div
+                    className={styles.projectEntryHeader}
+                    onClick={() => setExpandedProjectId(isExpanded ? null : proj.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setExpandedProjectId(isExpanded ? null : proj.id);
+                      }
+                    }}
+                  >
+                    <span className={styles.projectEntryTitle}>{titleDisplay}</span>
+                    <div className={styles.projectEntryActions} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={styles.projectDeleteBtn}
+                        onClick={() => removeProject(proj.id)}
+                        aria-label="Delete project"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  {isExpanded && (
+                    <div className={styles.projectEntryBody}>
+                      <label className={styles.label}>Project Title</label>
+                      <input
+                        className={styles.input}
+                        value={proj.name}
+                        onChange={(e) => updateProject(proj.id, { name: e.target.value })}
+                        placeholder="Project name"
+                      />
+                      <label className={styles.label}>Description (max 200 characters)</label>
+                      <textarea
+                        className={styles.textarea}
+                        rows={2}
+                        maxLength={200}
+                        value={proj.description}
+                        onChange={(e) => updateProject(proj.id, { description: e.target.value })}
+                        placeholder="Short description"
+                      />
+                      <div className={styles.charCounter}>
+                        {proj.description.length}/200
+                      </div>
+                      {proj.description.trim() && (
+                        <div className={styles.bulletHint}>
+                          {needsActionVerb(proj.description) && (
+                            <div>Start with a strong action verb.</div>
+                          )}
+                          {needsMeasurableImpact(proj.description) && (
+                            <div>Add measurable impact (numbers).</div>
+                          )}
+                        </div>
+                      )}
+                      <label className={styles.label}>Tech Stack</label>
+                      <div className={styles.tagInputWrap}>
+                        {(proj.techStack || []).map((t, i) => (
+                          <span key={`${t}-${i}`} className={styles.tagPill}>
+                            {t}
+                            <button
+                              type="button"
+                              className={styles.tagPillRemove}
+                              onClick={() =>
+                                updateProject(proj.id, {
+                                  techStack: (proj.techStack || []).filter((_, j) => j !== i),
+                                })
+                              }
+                              aria-label={`Remove ${t}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          className={styles.tagInput}
+                          placeholder="Add tech, press Enter"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = (e.target as HTMLInputElement).value.trim();
+                              if (val) {
+                                updateProject(proj.id, {
+                                  techStack: [...(proj.techStack || []), val],
+                                });
+                                (e.target as HTMLInputElement).value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <label className={styles.label}>Live URL (optional)</label>
+                      <input
+                        className={styles.input}
+                        type="url"
+                        value={proj.liveUrl || ''}
+                        onChange={(e) => updateProject(proj.id, { liveUrl: e.target.value })}
+                        placeholder="https://..."
+                      />
+                      <label className={styles.label}>GitHub URL (optional)</label>
+                      <input
+                        className={styles.input}
+                        type="url"
+                        value={proj.githubUrl || ''}
+                        onChange={(e) => updateProject(proj.id, { githubUrl: e.target.value })}
+                        placeholder="https://github.com/..."
+                      />
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
+          </div>
           <button type="button" className={styles.chipButton} onClick={addProject}>
-            + Add project
+            + Add Project
           </button>
 
           <h2 className={styles.sectionTitle}>Skills</h2>
-          <textarea
-            className={styles.textarea}
-            value={state.skills}
-            onChange={(e) => updateSkills(e.target.value)}
-            placeholder="React, TypeScript, Node.js, ..."
-          />
+          {SKILL_CATEGORIES.map(({ key, label }) => (
+            <div key={key} className={styles.skillCategory}>
+              <div className={styles.skillCategoryHeader}>
+                {label} ({(state.skills[key] || []).length})
+              </div>
+              <div className={styles.skillCategoryBody}>
+                <div className={styles.tagInputWrap}>
+                  {(state.skills[key] || []).map((skill, i) => (
+                    <span key={`${skill}-${i}`} className={styles.tagPill}>
+                      {skill}
+                      <button
+                        type="button"
+                        className={styles.tagPillRemove}
+                        onClick={() => removeSkill(key, i)}
+                        aria-label={`Remove ${skill}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    className={styles.tagInput}
+                    placeholder="Type skill, press Enter"
+                    value={skillInputs[key] ?? ''}
+                    onChange={(e) =>
+                      setSkillInputs((prev) => ({ ...prev, [key]: e.target.value }))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addSkill(key, (e.target as HTMLInputElement).value);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            className={styles.suggestSkillsBtn}
+            onClick={handleSuggestSkills}
+            disabled={suggestSkillsLoading}
+          >
+            {suggestSkillsLoading ? 'Adding…' : '✨ Suggest Skills'}
+          </button>
 
           <h2 className={styles.sectionTitle}>Links</h2>
           <div className={styles.fieldRow}>
@@ -463,12 +684,52 @@ export function BuilderPage() {
               <>
                 <div className={styles.previewSectionTitle}>Projects</div>
                 {state.projects
-                  .filter((p) => p.name.trim() || p.description.trim())
+                  .filter(
+                    (p) =>
+                      p.name.trim() ||
+                      p.description.trim() ||
+                      (p.techStack && p.techStack.length > 0) ||
+                      p.liveUrl?.trim() ||
+                      p.githubUrl?.trim()
+                  )
                   .map((proj) => (
-                    <div key={proj.id} className={styles.previewBlock}>
-                      <div className={styles.previewItemTitle}>{proj.name || 'Project'}</div>
+                    <div key={proj.id} className={styles.previewProjectCard}>
+                      <div className={styles.previewProjectCardTitle}>
+                        {proj.name || 'Project'}
+                      </div>
                       {proj.description?.trim() && (
-                        <p className={styles.previewBody}>{proj.description}</p>
+                        <p className={styles.previewProjectCardDesc}>{proj.description}</p>
+                      )}
+                      {(proj.techStack || []).length > 0 && (
+                        <div className={styles.previewProjectTech}>
+                          {(proj.techStack || []).map((t) => (
+                            <span key={t} className={styles.previewPill}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {(proj.liveUrl?.trim() || proj.githubUrl?.trim()) && (
+                        <div className={styles.previewProjectLinks}>
+                          {proj.liveUrl?.trim() && (
+                            <a
+                              href={proj.liveUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              🔗 Live
+                            </a>
+                          )}
+                          {proj.githubUrl?.trim() && (
+                            <a
+                              href={proj.githubUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              GitHub
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}
@@ -477,13 +738,21 @@ export function BuilderPage() {
             {hasSkills && (
               <>
                 <div className={styles.previewSectionTitle}>Skills</div>
-                <div className={styles.previewPills}>
-                  {skillsList.map((s) => (
-                    <span key={s} className={styles.previewPill}>
-                      {s}
-                    </span>
-                  ))}
-                </div>
+                {SKILL_CATEGORIES.map(
+                  ({ key, label }) =>
+                    (state.skills[key] || []).length > 0 && (
+                      <div key={key} className={styles.previewBlock}>
+                        <div className={styles.previewItemMeta}>{label}</div>
+                        <div className={styles.previewPills}>
+                          {(state.skills[key] || []).map((s) => (
+                            <span key={s} className={styles.previewPill}>
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                )}
               </>
             )}
             {hasLinks && (

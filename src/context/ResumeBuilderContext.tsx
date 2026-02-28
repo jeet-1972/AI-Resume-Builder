@@ -48,14 +48,33 @@ function loadFromStorage(): ResumeState | null {
       projects: Array.isArray(p.projects)
         ? p.projects.map((e: unknown, i: number) => {
             const x = e && typeof e === 'object' ? (e as Record<string, unknown>) : {};
+            const techStack = Array.isArray(x.techStack)
+              ? (x.techStack as unknown[]).map((t) => (typeof t === 'string' ? t : ''))
+              : [];
             return {
               id: typeof x.id === 'number' ? x.id : i + 1,
               name: typeof x.name === 'string' ? x.name : '',
               description: typeof x.description === 'string' ? x.description : '',
+              techStack,
+              liveUrl: typeof x.liveUrl === 'string' ? x.liveUrl : '',
+              githubUrl: typeof x.githubUrl === 'string' ? x.githubUrl : '',
             };
           })
         : [],
-      skills: typeof p.skills === 'string' ? p.skills : '',
+      skills: (() => {
+        const s = p.skills;
+        if (s && typeof s === 'object' && !Array.isArray(s)) {
+          const o = s as Record<string, unknown>;
+          return {
+            technical: Array.isArray(o.technical) ? (o.technical as string[]) : [],
+            soft: Array.isArray(o.soft) ? (o.soft as string[]) : [],
+            tools: Array.isArray(o.tools) ? (o.tools as string[]) : [],
+          };
+        }
+        const str = typeof s === 'string' ? s : '';
+        const list = str.split(',').map((x: string) => x.trim()).filter(Boolean);
+        return { technical: list, soft: [], tools: [] };
+      })(),
       links: {
         github: typeof linksObj.github === 'string' ? linksObj.github : '',
         linkedin: typeof linksObj.linkedin === 'string' ? linksObj.linkedin : '',
@@ -95,6 +114,15 @@ type ProjectEntry = {
   id: number;
   name: string;
   description: string;
+  techStack: string[];
+  liveUrl: string;
+  githubUrl: string;
+};
+
+export type SkillsByCategory = {
+  technical: string[];
+  soft: string[];
+  tools: string[];
 };
 
 type Links = {
@@ -115,7 +143,7 @@ export type ResumeState = {
   education: EducationEntry[];
   experience: ExperienceEntry[];
   projects: ProjectEntry[];
-  skills: string;
+  skills: SkillsByCategory;
   links: Links;
 };
 
@@ -136,7 +164,7 @@ const emptyState: ResumeState = {
   education: [],
   experience: [],
   projects: [],
-  skills: '',
+  skills: { technical: [], soft: [], tools: [] },
   links: {
     github: '',
     linkedin: '',
@@ -195,9 +223,16 @@ export function ResumeBuilderProvider({ children }: { children: ReactNode }) {
           id: 1,
           name: 'AI Resume Builder',
           description: 'Built a guided resume builder with live preview using React and TypeScript.',
+          techStack: ['React', 'TypeScript', 'Vite'],
+          liveUrl: '',
+          githubUrl: 'https://github.com/username/ai-resume-builder',
         },
       ],
-      skills: 'React, TypeScript, Node.js, REST APIs, Git',
+      skills: {
+        technical: ['React', 'TypeScript', 'Node.js'],
+        soft: ['Problem Solving'],
+        tools: ['Git', 'Docker'],
+      },
       links: {
         github: 'https://github.com/username',
         linkedin: 'https://linkedin.com/in/username',

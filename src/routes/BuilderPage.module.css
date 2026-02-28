@@ -245,6 +245,182 @@
   border-bottom: none;
 }
 
+/* Skills accordion */
+.skillCategory {
+  margin-top: 0.75rem;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.skillCategoryHeader {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #111827;
+  color: #e5e7eb;
+}
+.skillCategoryBody {
+  padding: 0.6rem 0.75rem;
+}
+.tagInputWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  background: #020617;
+  min-height: 36px;
+}
+.tagInputWrap:focus-within {
+  border-color: #4b5563;
+}
+.tagInput {
+  flex: 1;
+  min-width: 100px;
+  border: none;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  outline: none;
+}
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #d1d5db;
+  font-size: 0.8rem;
+}
+.tagPillRemove {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+}
+.tagPillRemove:hover {
+  color: #f87171;
+}
+.suggestSkillsBtn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: #93c5fd;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.suggestSkillsBtn:hover:not(:disabled) {
+  background: #1f2937;
+}
+.suggestSkillsBtn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Projects accordion */
+.projectAccordion {
+  margin-top: 0.5rem;
+}
+.projectEntry {
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+.projectEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: #111827;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+.projectEntryHeader:hover {
+  background: #1f2937;
+}
+.projectEntryTitle {
+  flex: 1;
+  min-width: 0;
+}
+.projectEntryActions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.projectEntryBody {
+  padding: 0.75rem;
+  border-top: 1px solid #1f2937;
+}
+.charCounter {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+.projectDeleteBtn {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.projectDeleteBtn:hover {
+  background: #7f1d1d;
+  border-color: #991b1b;
+  color: #fca5a5;
+}
+
+/* Preview: project cards */
+.previewProjectCard {
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.previewProjectCardTitle {
+  font-weight: 600;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+.previewProjectCardDesc {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+.previewProjectTech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+}
+.previewProjectLinks {
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.previewProjectLinks a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+.previewProjectLinks a:hover {
+  text-decoration: underline;
+}
+
 /* Template variants: layout styling only */
 .previewCard[data-template="classic"] .previewName {
   font-family: Georgia, serif;
