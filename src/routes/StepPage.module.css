@@ -1,0 +1,55 @@
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.placeholder {
+  color: #a0aec0;
+  font-size: 1rem;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.navLink {
+  padding: 0.5rem 1rem;
+  background: #2d3748;
+  border-radius: 6px;
+  color: #63b3ed;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.navLink:hover {
+  background: #4a5568;
+}
+
+.navDisabled {
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.navBtn {
+  padding: 0.5rem 1rem;
+  background: #3182ce;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: #2b6cb0;
+}
+
+.navBtn:disabled {
+  background: #4a5568;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

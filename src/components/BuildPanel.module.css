@@ -1,0 +1,116 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e0;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.6rem;
+  background: #1a1a2e;
+  border: 1px solid #2d3748;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.textarea::placeholder {
+  color: #718096;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #4a5568;
+}
+
+.btnPrimary {
+  padding: 0.5rem 1rem;
+  background: #3182ce;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btnPrimary:hover {
+  background: #2b6cb0;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statusLabel {
+  font-size: 0.85rem;
+  color: #a0aec0;
+}
+
+.statusBtn,
+.statusBtnError,
+.statusBtnScreenshot {
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.statusBtn {
+  background: #276749;
+  color: #fff;
+}
+
+.statusBtn:hover {
+  background: #2f855a;
+}
+
+.statusBtnError {
+  background: #c53030;
+  color: #fff;
+}
+
+.statusBtnError:hover {
+  background: #e53e3e;
+}
+
+.statusBtnScreenshot {
+  background: #744210;
+  color: #faf089;
+}
+
+.statusBtnScreenshot:hover {
+  background: #975a16;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #718096;
+  margin: 0;
+}

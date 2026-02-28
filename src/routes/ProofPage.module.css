@@ -1,0 +1,164 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #1a1a2e;
+  color: #eaeaea;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+}
+
+.topBarLeft {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.topBarCenter {
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
+.topBarRight {
+  width: 80px;
+}
+
+.contextHeader {
+  padding: 0.6rem 1.25rem;
+  background: #0f3460;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  padding: 1.5rem 1.25rem;
+  max-width: 640px;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #cbd5e0;
+}
+
+.stepList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #2d3748;
+}
+
+.stepNum {
+  min-width: 1.5rem;
+  color: #718096;
+}
+
+.stepName {
+  flex: 1;
+}
+
+.stepStatus {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.stepStatus[data-status="pending"] {
+  background: #4a5568;
+  color: #cbd5e0;
+}
+
+.stepStatus[data-status="uploaded"],
+.stepStatus[data-status="worked"] {
+  background: #276749;
+  color: #fff;
+}
+
+.stepStatus[data-status="error"] {
+  background: #c53030;
+  color: #fff;
+}
+
+.stepStatus[data-status="screenshot"] {
+  background: #744210;
+  color: #faf089;
+}
+
+.artifactBadge {
+  font-size: 0.7rem;
+  color: #68d391;
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.inputGroup label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+  color: #a0aec0;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: #1a1a2e;
+  border: 1px solid #2d3748;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.input::placeholder {
+  color: #718096;
+}
+
+.copyBtn {
+  padding: 0.6rem 1.25rem;
+  background: #3182ce;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.copyBtn:hover {
+  background: #2b6cb0;
+}
+
+.proofFooter {
+  padding: 0.5rem 1.25rem;
+  background: #16213e;
+  border-top: 1px solid #0f3460;
+  font-size: 0.85rem;
+}
+
+.proofFooter a {
+  color: #63b3ed;
+  text-decoration: none;
+}
+
+.proofFooter a:hover {
+  text-decoration: underline;
+}
