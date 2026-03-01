@@ -1,138 +1,128 @@
 import type { ResumeState } from '../context/ResumeBuilderContext';
 
-const SUMMARY_MIN_WORDS = 40;
-const SUMMARY_MAX_WORDS = 120;
-const MIN_PROJECTS = 2;
-const MIN_SKILLS = 8;
-const NUMBER_PATTERN = /[\d]+|%\s|k\b|K\b|\d+%|\d+x/i;
+/** Action verbs that earn +10 if present in summary (case-insensitive) */
+const ACTION_VERBS = [
+  'built', 'led', 'designed', 'improved', 'developed', 'managed', 'created',
+  'implemented', 'delivered', 'launched', 'achieved', 'increased', 'reduced',
+  'established', 'drove', 'spearheaded', 'optimized', 'streamlined',
+];
 
-function wordCount(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
+function summaryHasActionVerbs(summary: string): boolean {
+  const lower = summary.trim().toLowerCase();
+  return ACTION_VERBS.some((verb) => {
+    const re = new RegExp(`\\b${verb}\\b`, 'i');
+    return re.test(lower);
+  });
 }
 
-function hasNumberInText(text: string): boolean {
-  return NUMBER_PATTERN.test(text);
+function hasExperienceWithBullets(state: ResumeState): boolean {
+  return state.experience.some(
+    (e) => (e.description && e.description.trim().length > 0)
+  );
 }
 
-/** Returns true if at least one education entry has all of school, degree, start, end non-empty */
-function hasCompleteEducation(state: ResumeState): boolean {
+function hasEducationEntry(state: ResumeState): boolean {
   return state.education.some(
     (e) =>
-      e.school.trim() !== '' &&
-      e.degree.trim() !== '' &&
-      e.start.trim() !== '' &&
+      e.school.trim() !== '' ||
+      e.degree.trim() !== '' ||
+      e.start.trim() !== '' ||
       e.end.trim() !== ''
   );
 }
 
-/** Check experience/project bullets (role, company, description) for numbers */
-function hasMeasurableImpact(state: ResumeState): boolean {
-  const expHasNumber = state.experience.some(
-    (e) =>
-      hasNumberInText(e.role) ||
-      hasNumberInText(e.company) ||
-      (e.description && hasNumberInText(e.description))
-  );
-  const projHasNumber = state.projects.some(
-    (p) =>
-      hasNumberInText(p.name) ||
-      hasNumberInText(p.description) ||
-      (p.techStack && p.techStack.some((t) => hasNumberInText(t)))
-  );
-  return expHasNumber || projHasNumber;
-}
-
-export function computeAtsScore(state: ResumeState): number {
-  let score = 0;
-  const summaryWords = wordCount(state.summary);
-  if (summaryWords >= SUMMARY_MIN_WORDS && summaryWords <= SUMMARY_MAX_WORDS) score += 15;
-  if (state.projects.length >= MIN_PROJECTS) score += 10;
-  if (state.experience.length >= 1) score += 10;
-  const skillsList = [
+function skillsCount(state: ResumeState): number {
+  return [
     ...(state.skills.technical || []),
     ...(state.skills.soft || []),
     ...(state.skills.tools || []),
-  ].filter(Boolean);
-  if (skillsList.length >= MIN_SKILLS) score += 10;
-  const hasLink =
-    (state.links.github && state.links.github.trim() !== '') ||
-    (state.links.linkedin && state.links.linkedin.trim() !== '');
-  if (hasLink) score += 10;
-  if (hasMeasurableImpact(state)) score += 15;
-  if (hasCompleteEducation(state)) score += 10;
+  ].filter(Boolean).length;
+}
+
+function hasProjectEntry(state: ResumeState): boolean {
+  return state.projects.some(
+    (p) =>
+      p.name.trim() !== '' ||
+      p.description.trim() !== '' ||
+      (p.techStack && p.techStack.length > 0) ||
+      (p.liveUrl && p.liveUrl.trim() !== '') ||
+      (p.githubUrl && p.githubUrl.trim() !== '')
+  );
+}
+
+/**
+ * ATS Score: 0–100, deterministic.
+ * +10 name, +10 email, +10 summary>50 chars, +15 1 exp with bullets,
+ * +10 1 education, +10 5+ skills, +10 1 project, +5 phone, +5 LinkedIn, +5 GitHub,
+ * +10 summary has action verbs.
+ */
+export function computeAtsScore(state: ResumeState): number {
+  let score = 0;
+  if (state.personal.name && state.personal.name.trim() !== '') score += 10;
+  if (state.personal.email && state.personal.email.trim() !== '') score += 10;
+  if (state.summary.trim().length > 50) score += 10;
+  if (hasExperienceWithBullets(state)) score += 15;
+  if (hasEducationEntry(state)) score += 10;
+  if (skillsCount(state) >= 5) score += 10;
+  if (hasProjectEntry(state)) score += 10;
+  if (state.personal.phone && state.personal.phone.trim() !== '') score += 5;
+  if (state.links.linkedin && state.links.linkedin.trim() !== '') score += 5;
+  if (state.links.github && state.links.github.trim() !== '') score += 5;
+  if (summaryHasActionVerbs(state.summary)) score += 10;
   return Math.min(100, score);
 }
 
-export type SuggestionId =
-  | 'summary'
-  | 'projects'
-  | 'experience'
-  | 'skills'
-  | 'links'
-  | 'numbers'
-  | 'education';
+export type AtsSuggestion = { message: string; points: number };
 
-const SUGGESTION_MESSAGES: Record<SuggestionId, string> = {
-  summary: 'Write a stronger summary (40–120 words).',
-  projects: 'Add at least 2 projects.',
-  experience: 'Add at least 1 experience entry.',
-  skills: 'Add more skills (target 8+).',
-  links: 'Add a GitHub or LinkedIn link.',
-  numbers: 'Add measurable impact (numbers) in bullets.',
-  education: 'Complete education section (school, degree, dates).',
-};
-
-/** Returns up to 3 suggestion messages for what's missing (priority order). */
-export function getAtsSuggestions(state: ResumeState, maxCount = 3): string[] {
-  const out: string[] = [];
-  const summaryWords = wordCount(state.summary);
-  if (summaryWords < SUMMARY_MIN_WORDS || summaryWords > SUMMARY_MAX_WORDS)
-    out.push(SUGGESTION_MESSAGES.summary);
-  if (state.projects.length < MIN_PROJECTS) out.push(SUGGESTION_MESSAGES.projects);
-  if (state.experience.length < 1) out.push(SUGGESTION_MESSAGES.experience);
-  const skillsList = [
-    ...(state.skills.technical || []),
-    ...(state.skills.soft || []),
-    ...(state.skills.tools || []),
-  ].filter(Boolean);
-  if (skillsList.length < MIN_SKILLS) out.push(SUGGESTION_MESSAGES.skills);
-  const hasLink =
-    (state.links.github && state.links.github.trim() !== '') ||
-    (state.links.linkedin && state.links.linkedin.trim() !== '');
-  if (!hasLink) out.push(SUGGESTION_MESSAGES.links);
-  if (!hasMeasurableImpact(state)) out.push(SUGGESTION_MESSAGES.numbers);
-  if (!hasCompleteEducation(state)) out.push(SUGGESTION_MESSAGES.education);
-  return out.slice(0, maxCount);
-}
-
-/** Top 3 Improvements: priority order per spec. Used for Improvement Panel. */
-const TOP_IMPROVEMENTS: Array<{ check: (s: ResumeState) => boolean; message: string }> = [
-  { check: (s) => s.projects.length < MIN_PROJECTS, message: 'Add at least 2 projects.' },
-  { check: (s) => !hasMeasurableImpact(s), message: 'Add measurable impact (numbers) in bullets.' },
-  {
-    check: (s) => wordCount(s.summary) < SUMMARY_MIN_WORDS,
-    message: 'Expand your summary (target 40+ words).',
-  },
-  {
-    check: (s) =>
-      [
-        ...(s.skills.technical || []),
-        ...(s.skills.soft || []),
-        ...(s.skills.tools || []),
-      ].filter(Boolean).length < MIN_SKILLS,
-    message: 'Add more skills (target 8+).',
-  },
-  {
-    check: (s) => s.experience.length < 1,
-    message: 'Add experience or internship/project work.',
-  },
-];
-
-export function getTop3Improvements(state: ResumeState): string[] {
-  const out: string[] = [];
-  for (const { check, message } of TOP_IMPROVEMENTS) {
-    if (check(state)) out.push(message);
-    if (out.length >= 3) break;
+/** Returns missing items that would increase score, with point values. */
+export function getAtsSuggestions(state: ResumeState, maxCount?: number): AtsSuggestion[] {
+  const out: AtsSuggestion[] = [];
+  if (!(state.personal.name && state.personal.name.trim() !== '')) {
+    out.push({ message: 'Add your name', points: 10 });
   }
+  if (!(state.personal.email && state.personal.email.trim() !== '')) {
+    out.push({ message: 'Add your email', points: 10 });
+  }
+  if (state.summary.trim().length <= 50) {
+    out.push({ message: 'Add a professional summary', points: 10 });
+  }
+  if (!hasExperienceWithBullets(state)) {
+    out.push({ message: 'Add at least one experience entry with bullets', points: 15 });
+  }
+  if (!hasEducationEntry(state)) {
+    out.push({ message: 'Add at least one education entry', points: 10 });
+  }
+  if (skillsCount(state) < 5) {
+    out.push({ message: 'Add at least 5 skills', points: 10 });
+  }
+  if (!hasProjectEntry(state)) {
+    out.push({ message: 'Add at least one project', points: 10 });
+  }
+  if (!(state.personal.phone && state.personal.phone.trim() !== '')) {
+    out.push({ message: 'Add your phone number', points: 5 });
+  }
+  if (!(state.links.linkedin && state.links.linkedin.trim() !== '')) {
+    out.push({ message: 'Add your LinkedIn profile', points: 5 });
+  }
+  if (!(state.links.github && state.links.github.trim() !== '')) {
+    out.push({ message: 'Add your GitHub profile', points: 5 });
+  }
+  if (!summaryHasActionVerbs(state.summary) && state.summary.trim().length > 0) {
+    out.push({ message: 'Use action verbs in your summary (e.g. built, led, designed, improved)', points: 10 });
+  }
+  if (maxCount !== undefined) return out.slice(0, maxCount);
   return out;
 }
+
+/** Tier for display: 0–40 Needs Work (red), 41–70 Getting There (amber), 71–100 Strong (green). */
+export function getAtsTier(score: number): 'needsWork' | 'gettingThere' | 'strong' {
+  if (score <= 40) return 'needsWork';
+  if (score <= 70) return 'gettingThere';
+  return 'strong';
+}
+
+export const ATS_TIER_LABELS: Record<ReturnType<typeof getAtsTier>, string> = {
+  needsWork: 'Needs Work',
+  gettingThere: 'Getting There',
+  strong: 'Strong Resume',
+};

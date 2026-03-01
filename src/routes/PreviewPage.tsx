@@ -4,6 +4,7 @@ import { TemplatePicker } from '../components/TemplatePicker';
 import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
 import { useTemplate } from '../context/TemplateContext';
+import { computeAtsScore, getAtsSuggestions, getAtsTier, ATS_TIER_LABELS } from '../utils/atsScore';
 import { isResumeIncomplete, resumeToPlainText } from '../utils/resumeToPlainText';
 import styles from './PreviewPage.module.css';
 
@@ -66,6 +67,10 @@ export function PreviewPage() {
   const hasSkills = skillsList.length > 0;
   const hasLinks = !!(state.links.github?.trim() || state.links.linkedin?.trim());
 
+  const atsScore = computeAtsScore(state);
+  const atsSuggestions = getAtsSuggestions(state);
+  const atsTier = getAtsTier(atsScore);
+
   return (
     <ResumeShellLayout
       title="Preview"
@@ -102,6 +107,33 @@ export function PreviewPage() {
           PDF export ready! Check your downloads.
         </div>
       )}
+      <div className={`no-print ${styles.atsSection}`}>
+        <div className={styles.atsCircularWrap}>
+          <div
+            className={`${styles.atsCircle} ${styles[`atsTier_${atsTier}`]}`}
+            role="progressbar"
+            aria-valuenow={atsScore}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`ATS score ${atsScore} out of 100`}
+            style={{ ['--ats-percent' as string]: atsScore }}
+          >
+            <span className={styles.atsCircleValue}>{atsScore}</span>
+          </div>
+          <div className={`${styles.atsTierLabel} ${styles[`atsTierLabel_${atsTier}`]}`}>
+            {ATS_TIER_LABELS[atsTier]}
+          </div>
+        </div>
+        {atsSuggestions.length > 0 && (
+          <ul className={styles.atsSuggestionList}>
+            {atsSuggestions.map((s, i) => (
+              <li key={i} className={styles.atsSuggestionItem}>
+                {s.message} (+{s.points} points)
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div className={styles.previewOuter}>
         <div
           className={styles.page}

@@ -5,7 +5,7 @@ import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
 import { useTemplate } from '../context/TemplateContext';
 import type { SkillsByCategory } from '../context/ResumeBuilderContext';
-import { computeAtsScore, getAtsSuggestions, getTop3Improvements } from '../utils/atsScore';
+import { computeAtsScore, getAtsSuggestions } from '../utils/atsScore';
 import { needsActionVerb, needsMeasurableImpact } from '../utils/bulletGuidance';
 import styles from './BuilderPage.module.css';
 
@@ -28,8 +28,7 @@ export function BuilderPage() {
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
   const [skillInputs, setSkillInputs] = useState<Record<string, string>>({ technical: '', soft: '', tools: '' });
   const atsScore = computeAtsScore(state);
-  const suggestions = getAtsSuggestions(state, 3);
-  const top3Improvements = getTop3Improvements(state);
+  const suggestions = getAtsSuggestions(state);
   const hasContact =
     state.personal.name ||
     state.personal.email ||
@@ -944,27 +943,12 @@ export function BuilderPage() {
             <div className={styles.atsScoreValue}>{atsScore}/100</div>
             {suggestions.length > 0 && (
               <ul className={styles.atsSuggestions}>
-                {suggestions.map((msg, i) => (
+                {suggestions.map((s, i) => (
                   <li key={i} className={styles.atsSuggestion}>
-                    {msg}
+                    {s.message} (+{s.points} points)
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
-
-          <div className={styles.improvementsCard}>
-            <div className={styles.improvementsLabel}>Top 3 Improvements</div>
-            {top3Improvements.length > 0 ? (
-              <ul className={styles.improvementsList}>
-                {top3Improvements.map((msg, i) => (
-                  <li key={i} className={styles.improvementItem}>
-                    {msg}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.subtle}>No improvements needed at this time.</p>
             )}
           </div>
         </aside>
