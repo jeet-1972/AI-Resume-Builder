@@ -1,0 +1,130 @@
+.picker {
+  margin-bottom: 1rem;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.thumb {
+  position: relative;
+  width: 120px;
+  padding: 0;
+  border: 2px solid #374151;
+  border-radius: 8px;
+  background: #111827;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.thumb:hover {
+  border-color: #4b5563;
+}
+
+.thumbActive {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.thumbSketch {
+  width: 100%;
+  height: 72px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.thumbSketch[data-layout="classic"] {
+  align-items: stretch;
+}
+
+.thumbSketch[data-layout="classic"] .sketchLine {
+  height: 6px;
+  background: #4b5563;
+  border-radius: 2px;
+}
+
+.thumbSketch[data-layout="modern"] {
+  flex-direction: row;
+  gap: 4px;
+}
+
+.sketchSidebar {
+  width: 28%;
+  background: #4b5563;
+  border-radius: 2px;
+}
+
+.sketchMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sketchMain .sketchLine {
+  height: 6px;
+  background: #374151;
+  border-radius: 2px;
+}
+
+.thumbSketch[data-layout="minimal"] .sketchLineMinimal {
+  height: 5px;
+  background: #374151;
+  border-radius: 2px;
+  margin: 2px 4px;
+}
+
+.checkmark {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.thumbLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding: 0.35rem 0;
+}
+
+.colorRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.colorCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #374151;
+  padding: 0;
+  cursor: pointer;
+}
+
+.colorCircle:hover {
+  border-color: #6b7280;
+  transform: scale(1.08);
+}
+
+.colorCircle[aria-pressed="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #3b82f6;
+}

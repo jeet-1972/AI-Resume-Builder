@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ResumeShellLayout } from '../components/ResumeShellLayout';
+import { TemplatePicker } from '../components/TemplatePicker';
 import { TemplateTabs } from '../components/TemplateTabs';
 import { useResumeBuilder } from '../context/ResumeBuilderContext';
 import { useTemplate } from '../context/TemplateContext';
@@ -22,7 +23,7 @@ const SKILL_CATEGORIES: { key: keyof SkillsByCategory; label: string }[] = [
 
 export function BuilderPage() {
   const { state, setState, loadSample } = useResumeBuilder();
-  const { template } = useTemplate();
+  const { template, accentHsl } = useTemplate();
   const [suggestSkillsLoading, setSuggestSkillsLoading] = useState(false);
   const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
   const [skillInputs, setSkillInputs] = useState<Record<string, string>>({ technical: '', soft: '', tools: '' });
@@ -629,27 +630,175 @@ export function BuilderPage() {
         </section>
 
         <aside className={styles.previewColumn}>
-          <div className={styles.previewCard} data-template={template}>
+          <TemplatePicker />
+          <div
+            className={styles.previewCard}
+            data-template={template}
+            style={{ ['--accent' as string]: accentHsl }}
+          >
             <div className={styles.previewHeading}>Live Preview</div>
-            {hasContact && (
-              <>
-                <div className={styles.previewName}>
-                  {state.personal.name || 'Your Name'}
+            {template === 'modern' ? (
+              <div className={styles.previewModernWrap}>
+                <div className={styles.previewSidebar}>
+                  {hasContact && (
+                    <>
+                      <div className={styles.previewName}>
+                        {state.personal.name || 'Your Name'}
+                      </div>
+                      <div className={styles.previewMeta}>
+                        {[state.personal.email, state.personal.phone, state.personal.location]
+                          .filter(Boolean)
+                          .join(' • ')}
+                      </div>
+                    </>
+                  )}
+                  {hasSkills && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Skills</div>
+                      {SKILL_CATEGORIES.map(
+                        ({ key, label }) =>
+                          (state.skills[key] || []).length > 0 && (
+                            <div key={key} className={styles.previewBlock}>
+                              <div className={styles.previewItemMeta}>{label}</div>
+                              <div className={styles.previewPills}>
+                                {(state.skills[key] || []).map((s) => (
+                                  <span key={s} className={styles.previewPill}>
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                      )}
+                    </>
+                  )}
                 </div>
-                <div className={styles.previewMeta}>
-                  {[state.personal.email, state.personal.phone, state.personal.location]
-                    .filter(Boolean)
-                    .join(' • ')}
+                <div className={styles.previewMain}>
+                  {hasSummary && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Summary</div>
+                      <p className={styles.previewBody}>{state.summary}</p>
+                    </>
+                  )}
+                  {hasEducation && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Education</div>
+                      {state.education
+                        .filter((e) => e.school.trim() || e.degree.trim() || e.start.trim() || e.end.trim())
+                        .map((edu) => (
+                          <div key={edu.id} className={styles.previewBlock}>
+                            <div className={styles.previewItemTitle}>{edu.school || 'School'}</div>
+                            <div className={styles.previewItemMeta}>
+                              {edu.degree} {[edu.start, edu.end].filter(Boolean).join(' – ')}
+                            </div>
+                          </div>
+                        ))}
+                    </>
+                  )}
+                  {hasExperience && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Experience</div>
+                      {state.experience.map((exp) => (
+                        <div key={exp.id} className={styles.previewBlock}>
+                          <div className={styles.previewItemTitle}>{exp.role || 'Role'}</div>
+                          <div className={styles.previewItemMeta}>
+                            {exp.company} • {[exp.start, exp.end].filter(Boolean).join(' – ')}
+                          </div>
+                          {exp.description?.trim() && (
+                            <p className={styles.previewBody}>{exp.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {hasProjects && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Projects</div>
+                      {state.projects
+                        .filter(
+                          (p) =>
+                            p.name.trim() ||
+                            p.description.trim() ||
+                            (p.techStack && p.techStack.length > 0) ||
+                            p.liveUrl?.trim() ||
+                            p.githubUrl?.trim()
+                        )
+                        .map((proj) => (
+                          <div key={proj.id} className={styles.previewProjectCard}>
+                            <div className={styles.previewProjectCardTitle}>
+                              {proj.name || 'Project'}
+                            </div>
+                            {proj.description?.trim() && (
+                              <p className={styles.previewProjectCardDesc}>{proj.description}</p>
+                            )}
+                            {(proj.techStack || []).length > 0 && (
+                              <div className={styles.previewProjectTech}>
+                                {(proj.techStack || []).map((t) => (
+                                  <span key={t} className={styles.previewPill}>
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {(proj.liveUrl?.trim() || proj.githubUrl?.trim()) && (
+                              <div className={styles.previewProjectLinks}>
+                                {proj.liveUrl?.trim() && (
+                                  <a href={proj.liveUrl} target="_blank" rel="noopener noreferrer">
+                                    🔗 Live
+                                  </a>
+                                )}
+                                {proj.githubUrl?.trim() && (
+                                  <a href={proj.githubUrl} target="_blank" rel="noopener noreferrer">
+                                    GitHub
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </>
+                  )}
+                  {hasLinks && (
+                    <>
+                      <div className={styles.previewSectionTitle}>Links</div>
+                      <div className={styles.previewBody}>
+                        {state.links.github?.trim() && (
+                          <a href={state.links.github} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #93c5fd)' }}>
+                            GitHub
+                          </a>
+                        )}
+                        {state.links.github?.trim() && state.links.linkedin?.trim() && ' · '}
+                        {state.links.linkedin?.trim() && (
+                          <a href={state.links.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #93c5fd)' }}>
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              </>
-            )}
-            {hasSummary && (
+              </div>
+            ) : (
               <>
-                <div className={styles.previewSectionTitle}>Summary</div>
-                <p className={styles.previewBody}>{state.summary}</p>
-              </>
-            )}
-            {hasEducation && (
+                {hasContact && (
+                  <>
+                    <div className={styles.previewName}>
+                      {state.personal.name || 'Your Name'}
+                    </div>
+                    <div className={styles.previewMeta}>
+                      {[state.personal.email, state.personal.phone, state.personal.location]
+                        .filter(Boolean)
+                        .join(' • ')}
+                    </div>
+                  </>
+                )}
+                {hasSummary && (
+                  <>
+                    <div className={styles.previewSectionTitle}>Summary</div>
+                    <p className={styles.previewBody}>{state.summary}</p>
+                  </>
+                )}
+                {hasEducation && (
               <>
                 <div className={styles.previewSectionTitle}>Education</div>
                 {state.education
@@ -760,13 +909,13 @@ export function BuilderPage() {
                 <div className={styles.previewSectionTitle}>Links</div>
                 <div className={styles.previewBody}>
                   {state.links.github?.trim() && (
-                    <a href={state.links.github} target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>
+                    <a href={state.links.github} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #93c5fd)' }}>
                       GitHub
                     </a>
                   )}
                   {state.links.github?.trim() && state.links.linkedin?.trim() && ' · '}
                   {state.links.linkedin?.trim() && (
-                    <a href={state.links.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>
+                    <a href={state.links.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #93c5fd)' }}>
                       LinkedIn
                     </a>
                   )}
@@ -775,6 +924,8 @@ export function BuilderPage() {
             )}
             {!hasContact && !hasSummary && !hasEducation && !hasExperience && !hasProjects && !hasSkills && !hasLinks && (
               <p className={styles.subtle}>Fill the form to see your resume here.</p>
+            )}
+          </>
             )}
           </div>
 
